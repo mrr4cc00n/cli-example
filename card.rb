@@ -26,7 +26,7 @@ class Card < Thor
     result
   end
 
-  desc 'ruby card.rb group_by --fields setName, colors',
+  desc 'ruby card.rb group_by --fields colors rarity',
        'group the result by the specified values on --fields[]'
   method_option :fields, :type => :array, :required => true
   def group_by
