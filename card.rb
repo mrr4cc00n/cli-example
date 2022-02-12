@@ -1,22 +1,41 @@
 require 'httparty'
 require 'json'
+require 'thor'
 
-class Card
+class Card < Thor
+
+  package_name 'card'
+  map "-L" => :list
+
+  desc 'request_cards','request a set of cards to the magic the gathering API'
   def request_cards
-    JSON.parse(HTTParty.get('https://api.magicthegathering.io/v1/cards').body,
-               symbolize_names: true)[:cards]
+    JSON.parse(HTTParty.get('https://api.magicthegathering.io/v1/cards').body)['cards']
   end
 
-  def filter_by(fields: [:setName, :colors], values: [])
-    request_cards.select do |card|
-      apply_filters(fields: fields, values: values, card: card)
+  desc 'filter_by --fields setName, colors --values Tenth Edition, [White]]',
+       'filter the result by the specified collections on --fields[] and --values[]'
+  method_option :fields, :type => :hash, :required => true
+  def filter_by
+    fields = options[:fields] || {}
+    pp fields
+    # return
+    result = request_cards.select do |card|
+      apply_filters(fields: fields.keys, values: fields.values, card: card)
     end
+    pp result
+    result
   end
 
-  def group_by(fields:, cards:)
+  desc 'group_by --fields setName, colors',
+       'group the result by the specified values on --fields[]'
+  method_option :fields, :type => :array, :required => true
+  def group_by
+    fields = options[:fields] || []
+    cards = request_cards
     fields.each do |f|
       cards = group(elements: cards, field: f)
     end
+    pp cards
     cards
   end
 
@@ -37,7 +56,7 @@ class Card
     fields.each_with_index do |f, i|
       pass_filters = case card[f]
                      when Array
-                       pass_filters && filter_array?(elements: card[f], values: values[i])
+                       pass_filters && filter_array?(elements: card[f], values: values[i].split(','))
                      when Hash
                        pass_filters && filter_hash?(elements_hash: card[f], values: values[i])
                      else
@@ -62,15 +81,18 @@ class Card
   end
 end
 
-c = Card.new
-# c.request_cards.each do |e|
-#   p e[:id]
-#   p e[:setName]
-# end
-# c.filter_by(values: ['Tenth Edition', ['White']]).each do |e|
-#   p e[:id]
-#   p e[:setName]
-#   p e[:colors]
-# end
-pp c.group_by(fields: [:colors, :rarity], cards: c.request_cards)
-# p c.filter_by(values: ['Tenth Edition', ['White']]).size
+
+Card.start(ARGV)
+
+# c = Card.new
+# # c.request_cards.each do |e|
+# #   p e[:id]
+# #   p e[:setName]
+# # end
+# # c.filter_by(values: ['Tenth Edition', ['White']]).each do |e|
+# #   p e[:id]
+# #   p e[:setName]
+# #   p e[:colors]
+# # end
+# pp c.group_by(fields: [:colors, :rarity], cards: c.request_cards)
+# # p c.filter_by(values: ['Tenth Edition', ['White']]).size
