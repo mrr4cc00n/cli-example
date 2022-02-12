@@ -7,13 +7,13 @@ class Card < Thor
   package_name 'card'
   map "-L" => :list
 
-  desc 'request_cards','request a set of cards to the magic the gathering API'
+  desc 'ruby card.rb request_cards','request a set of cards to the magic the gathering API'
   def request_cards
     JSON.parse(HTTParty.get('https://api.magicthegathering.io/v1/cards').body)['cards']
   end
 
-  desc 'filter_by --fields setName, colors --values Tenth Edition, [White]]',
-       'filter the result by the specified collections on --fields[] and --values[]'
+  desc "ruby card.rb filter_by --fields setName:'Tenth Edition' colors:White,Blue",
+       'filter the result by the specified hash --fields{}'
   method_option :fields, :type => :hash, :required => true
   def filter_by
     fields = options[:fields] || {}
@@ -26,7 +26,7 @@ class Card < Thor
     result
   end
 
-  desc 'group_by --fields setName, colors',
+  desc 'ruby card.rb group_by --fields setName, colors',
        'group the result by the specified values on --fields[]'
   method_option :fields, :type => :array, :required => true
   def group_by
