@@ -4,12 +4,11 @@ require 'thor'
 
 class Card < Thor
 
-  package_name 'card'
-  map "-L" => :list
-
   desc 'ruby card.rb request_cards','request a set of cards to the magic the gathering API'
   def request_cards
-    JSON.parse(HTTParty.get('https://api.magicthegathering.io/v1/cards').body)['cards']
+    cards = JSON.parse(HTTParty.get('https://api.magicthegathering.io/v1/cards').body)['cards']
+    pp cards
+    cards
   end
 
   desc "ruby card.rb filter_by --fields setName:'Tenth Edition' colors:White,Blue",
@@ -17,8 +16,6 @@ class Card < Thor
   method_option :fields, :type => :hash, :required => true
   def filter_by
     fields = options[:fields] || {}
-    pp fields
-    # return
     result = request_cards.select do |card|
       apply_filters(fields: fields.keys, values: fields.values, card: card)
     end
@@ -83,16 +80,3 @@ end
 
 
 Card.start(ARGV)
-
-# c = Card.new
-# # c.request_cards.each do |e|
-# #   p e[:id]
-# #   p e[:setName]
-# # end
-# # c.filter_by(values: ['Tenth Edition', ['White']]).each do |e|
-# #   p e[:id]
-# #   p e[:setName]
-# #   p e[:colors]
-# # end
-# pp c.group_by(fields: [:colors, :rarity], cards: c.request_cards)
-# # p c.filter_by(values: ['Tenth Edition', ['White']]).size
