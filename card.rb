@@ -54,8 +54,6 @@ class Card < Thor
       pass_filters = case card[f]
                      when Array
                        pass_filters && filter_array?(elements: card[f], values: values[i].split(','))
-                     when Hash
-                       pass_filters && filter_hash?(elements_hash: card[f], values: values[i])
                      else
                        pass_filters && card[f] == values[i]
                      end
@@ -66,13 +64,6 @@ class Card < Thor
   def filter_array?(elements:, values:)
     values.each do |e|
       return false unless elements.include? e
-    end
-    true
-  end
-
-  def filter_hash?(elements_hash:, values:)
-    values.each do |k, v|
-      return false unless elements_hash[k] == v
     end
     true
   end
